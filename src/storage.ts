@@ -1,3 +1,4 @@
+import { demoTasks } from "./demo";
 import { parseCalendarDate } from "./deadline";
 import { isStatus, type Task } from "./types";
 
@@ -31,7 +32,7 @@ function readTask(value: unknown): Task | null {
 export function loadTasks(): Task[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
+    if (!raw) return demoTasks();
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
     return parsed.flatMap((item) => {
