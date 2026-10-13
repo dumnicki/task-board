@@ -5,6 +5,7 @@ import type { Task } from "../types";
 type TaskCardProps = {
   task: Task;
   now: Date;
+  startInEdit?: boolean;
   onUpdate: (
     id: string,
     patch: Partial<Pick<Task, "title" | "description" | "deadline">>,
@@ -17,13 +18,28 @@ function cancelDrag(event: DragEvent<HTMLButtonElement>) {
   event.stopPropagation();
 }
 
-export function TaskCard({ task, now, onUpdate, onRemove }: TaskCardProps) {
-  const [editing, setEditing] = useState(false);
+export function TaskCard({
+  task,
+  now,
+  startInEdit = false,
+  onUpdate,
+  onRemove,
+}: TaskCardProps) {
+  const [editing, setEditing] = useState(startInEdit);
   const [dragging, setDragging] = useState(false);
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description);
   const [deadline, setDeadline] = useState(task.deadline ?? "");
+  const cardRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
+  const draftRef = useRef({ title, description, deadline });
+  const taskRef = useRef(task);
+  const onUpdateRef = useRef(onUpdate);
+  const onRemoveRef = useRef(onRemove);
+  draftRef.current = { title, description, deadline };
+  taskRef.current = task;
+  onUpdateRef.current = onUpdate;
+  onRemoveRef.current = onRemove;
 
   const shownDeadline = editing ? deadline || null : task.deadline;
   const tone: DeadlineTone | "done" =
@@ -32,6 +48,51 @@ export function TaskCard({ task, now, onUpdate, onRemove }: TaskCardProps) {
 
   useEffect(() => {
     if (editing) titleRef.current?.focus();
+  }, [editing]);
+
+  useEffect(() => {
+    if (!editing) return;
+
+    function commit() {
+      const draft = draftRef.current;
+      const current = taskRef.current;
+      const trimmedTitle = draft.title.trim();
+      if (!trimmedTitle) {
+        if (current.title.trim()) {
+          setTitle(current.title);
+          setDescription(current.description);
+          setDeadline(current.deadline ?? "");
+          setEditing(false);
+          return;
+        }
+        onRemoveRef.current(current.id);
+        return;
+      }
+      onUpdateRef.current(current.id, {
+        title: trimmedTitle,
+        description: draft.description.trim(),
+        deadline: draft.deadline || null,
+      });
+      setTitle(trimmedTitle);
+      setEditing(false);
+    }
+
+    function onPointerDown(event: PointerEvent) {
+      const target = event.target;
+      if (!(target instanceof Node) || cardRef.current?.contains(target)) return;
+      commit();
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") commit();
+    }
+
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
   }, [editing]);
 
   function startEditing() {
@@ -43,13 +104,23 @@ export function TaskCard({ task, now, onUpdate, onRemove }: TaskCardProps) {
 
   function finishEditing() {
     const trimmedTitle = title.trim();
-    const nextTitle = trimmedTitle || task.title;
+    if (!trimmedTitle) {
+      if (task.title.trim()) {
+        setTitle(task.title);
+        setDescription(task.description);
+        setDeadline(task.deadline ?? "");
+        setEditing(false);
+        return;
+      }
+      onRemove(task.id);
+      return;
+    }
     onUpdate(task.id, {
-      title: nextTitle,
+      title: trimmedTitle,
       description: description.trim(),
       deadline: deadline || null,
     });
-    setTitle(nextTitle);
+    setTitle(trimmedTitle);
     setEditing(false);
   }
 
@@ -74,6 +145,7 @@ export function TaskCard({ task, now, onUpdate, onRemove }: TaskCardProps) {
 
   return (
     <article
+      ref={cardRef}
       className={dragging ? `card tone-${tone} is-dragging` : `card tone-${tone}`}
       draggable={!editing}
       onDragStart={onDragStart}
@@ -91,7 +163,11 @@ export function TaskCard({ task, now, onUpdate, onRemove }: TaskCardProps) {
           <button
             type="button"
             className="icon-button"
-            aria-label={editing ? `Done editing ${task.title}` : `Edit ${task.title}`}
+            aria-label={
+              editing
+                ? `Done editing ${task.title || "new task"}`
+                : `Edit ${task.title || "new task"}`
+            }
             aria-pressed={editing}
             onClick={() => (editing ? finishEditing() : startEditing())}
             onDragStart={cancelDrag}
@@ -101,7 +177,7 @@ export function TaskCard({ task, now, onUpdate, onRemove }: TaskCardProps) {
           <button
             type="button"
             className="icon-button danger"
-            aria-label={`Remove ${task.title}`}
+            aria-label={`Remove ${task.title || "new task"}`}
             onClick={() => onRemove(task.id)}
             onDragStart={cancelDrag}
           >
@@ -118,6 +194,7 @@ export function TaskCard({ task, now, onUpdate, onRemove }: TaskCardProps) {
               ref={titleRef}
               value={title}
               onChange={(event) => setTitle(event.target.value)}
+              placeholder="What needs doing?"
               maxLength={120}
             />
           </label>

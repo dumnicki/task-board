@@ -147,28 +147,6 @@ h1 {
   border-color: var(--done-line);
 }
 
-.composer {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 190px auto;
-  gap: 12px;
-  align-items: end;
-  padding: 14px;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  box-shadow: var(--shadow);
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 0.82rem;
-  font-weight: 700;
-}
-
-.field input,
-.field textarea,
 .edit-form input,
 .edit-form textarea {
   width: 100%;
@@ -179,33 +157,9 @@ h1 {
   font-weight: 400;
 }
 
-.field.description {
-  grid-column: 1 / -1;
-}
-
-.field textarea,
 .edit-form textarea {
   resize: vertical;
   min-height: 68px;
-}
-
-.add-button {
-  border: 0;
-  border-radius: 12px;
-  padding: 11px 16px;
-  background: var(--ink);
-  color: #fffaf3;
-  font-weight: 700;
-}
-
-.add-button:hover {
-  background: #3a2d22;
-}
-
-.form-error {
-  margin-top: 8px;
-  color: var(--late);
-  font-weight: 700;
 }
 
 .board {
@@ -235,6 +189,12 @@ h1 {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+.column-tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 h2 {
@@ -401,7 +361,6 @@ h2 {
 
 @media (max-width: 860px) {
   .masthead,
-  .composer,
   .board {
     grid-template-columns: 1fr;
     display: grid;
@@ -409,9 +368,5 @@ h2 {
 
   .masthead {
     align-items: start;
-  }
-
-  .add-button {
-    width: 100%;
   }
 }

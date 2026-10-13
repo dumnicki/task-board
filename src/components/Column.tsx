@@ -8,6 +8,8 @@ type ColumnProps = {
   label: string;
   tasks: Task[];
   now: Date;
+  newCardId: string | null;
+  onAdd: (status: Status) => void;
   onMove: (id: string, status: Status) => void;
   onUpdate: (
     id: string,
@@ -21,6 +23,8 @@ export function Column({
   label,
   tasks,
   now,
+  newCardId,
+  onAdd,
   onMove,
   onUpdate,
   onRemove,
@@ -64,10 +68,20 @@ export function Column({
     >
       <header className="column-header">
         <h2 id={`column-${status}`}>{label}</h2>
-        <span className="count">
-          {tasks.length}
-          <span className="visually-hidden"> tasks</span>
-        </span>
+        <div className="column-tools">
+          <button
+            type="button"
+            className="icon-button"
+            aria-label={`Add a task to ${label}`}
+            onClick={() => onAdd(status)}
+          >
+            <PlusIcon />
+          </button>
+          <span className="count">
+            {tasks.length}
+            <span className="visually-hidden"> tasks</span>
+          </span>
+        </div>
       </header>
       {urgent > 0 && (
         <p className="column-note">
@@ -83,11 +97,21 @@ export function Column({
             key={task.id}
             task={task}
             now={now}
+            startInEdit={task.id === newCardId}
             onUpdate={onUpdate}
             onRemove={onRemove}
           />
         ))}
       </div>
     </section>
+  );
+}
+
+function PlusIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 5v14" />
+      <path d="M5 12h14" />
+    </svg>
   );
 }
