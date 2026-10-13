@@ -9,7 +9,10 @@ type ColumnProps = {
   tasks: Task[];
   now: Date;
   onMove: (id: string, status: Status) => void;
-  onUpdate: (id: string, patch: Partial<Pick<Task, "title" | "deadline">>) => void;
+  onUpdate: (
+    id: string,
+    patch: Partial<Pick<Task, "title" | "description" | "deadline">>,
+  ) => void;
   onRemove: (id: string) => void;
 };
 
@@ -23,10 +26,13 @@ export function Column({
   onRemove,
 }: ColumnProps) {
   const [over, setOver] = useState(false);
-  const urgent = tasks.filter((task) => {
-    const tone = deadlineTone(task.deadline, now);
-    return tone === "overdue" || tone === "soon";
-  }).length;
+  const urgent =
+    status === "completed"
+      ? 0
+      : tasks.filter((task) => {
+          const tone = deadlineTone(task.deadline, now);
+          return tone === "overdue" || tone === "soon";
+        }).length;
 
   function allowDrop(event: DragEvent<HTMLElement>) {
     event.preventDefault();
@@ -70,14 +76,13 @@ export function Column({
       )}
       <div className="card-list">
         {tasks.length === 0 && (
-          <p className="empty">Drop a task here, or move one with the status buttons.</p>
+          <p className="empty">Drop a task here.</p>
         )}
         {tasks.map((task) => (
           <TaskCard
             key={task.id}
             task={task}
             now={now}
-            onMove={onMove}
             onUpdate={onUpdate}
             onRemove={onRemove}
           />

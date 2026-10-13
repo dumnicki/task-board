@@ -53,22 +53,15 @@ export function deadlineTone(
   return "later";
 }
 
-export function deadlineSummary(
-  deadline: string,
-  now = new Date(),
-): string | null {
+export function compactDeadline(deadline: string, now = new Date()): string | null {
   const days = daysUntil(deadline, now);
-  if (days === null) return null;
-  if (days < 0) {
-    const ago = Math.abs(days);
-    return ago === 1
-      ? "Past deadline · 1 day ago"
-      : `Past deadline · ${ago} days ago`;
-  }
-  if (days === 0) return "Coming up · due today";
-  if (days === 1) return "Coming up · due tomorrow";
-  if (days <= COMING_WINDOW_DAYS) return `Coming up · due in ${days} days`;
-  return `Due in ${days} days`;
+  const formatted = formatDeadline(deadline);
+  if (days === null || !formatted) return null;
+  if (days < 0) return `Past · ${formatted}`;
+  if (days === 0) return `Today · ${formatted}`;
+  if (days === 1) return `Tomorrow · ${formatted}`;
+  if (days <= COMING_WINDOW_DAYS) return `In ${days} days · ${formatted}`;
+  return formatted;
 }
 
 export function formatDeadline(deadline: string): string | null {

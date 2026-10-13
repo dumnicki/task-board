@@ -7,6 +7,7 @@ import { COLUMNS, columnLabel, type Status, type Task } from "./types";
 export function App() {
   const [tasks, setTasks] = useState<Task[]>(() => loadTasks());
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [deadline, setDeadline] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -36,11 +37,13 @@ export function App() {
     const task: Task = {
       id: crypto.randomUUID(),
       title: trimmed,
+      description: description.trim(),
       deadline: deadline || null,
       status: "todo",
     };
     setTasks((current) => [...current, task]);
     setTitle("");
+    setDescription("");
     setDeadline("");
     setError("");
     setNotice(`Added “${trimmed}” to To do.`);
@@ -59,7 +62,7 @@ export function App() {
 
   function updateTask(
     id: string,
-    patch: Partial<Pick<Task, "title" | "deadline">>,
+    patch: Partial<Pick<Task, "title" | "description" | "deadline">>,
   ) {
     setTasks((items) =>
       items.map((task) => (task.id === id ? { ...task, ...patch } : task)),
@@ -79,8 +82,7 @@ export function App() {
           <p className="eyebrow">Personal board</p>
           <h1>Task board</h1>
           <p className="lede">
-            Add a task, then drag it between columns or use the status buttons.
-            Tasks stay in this browser.
+            Add a task, then drag the card between columns. Tasks stay in this browser.
           </p>
         </div>
         <ul className="legend">
@@ -91,6 +93,10 @@ export function App() {
           <li>
             <span className="swatch overdue" aria-hidden="true" />
             Past deadline
+          </li>
+          <li>
+            <span className="swatch done" aria-hidden="true" />
+            Finished
           </li>
         </ul>
       </header>
@@ -117,6 +123,16 @@ export function App() {
         <button type="submit" className="add-button">
           Add to To do
         </button>
+        <label className="field description">
+          Description
+          <textarea
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            placeholder="Optional note"
+            maxLength={500}
+            rows={2}
+          />
+        </label>
       </form>
       {error && (
         <p className="form-error" role="alert">
