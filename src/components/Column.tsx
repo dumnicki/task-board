@@ -60,6 +60,7 @@ export function Column({
   return (
     <section
       className={over ? "column is-over" : "column"}
+      data-status={status}
       aria-labelledby={`column-${status}`}
       onDragEnter={allowDrop}
       onDragOver={allowDrop}

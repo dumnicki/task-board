@@ -49,6 +49,7 @@ export function App() {
     setTasks((items) =>
       items.map((task) => (task.id === id ? { ...task, ...patch } : task)),
     );
+    setNewCardId((current) => (current === id ? null : current));
   }
 
   function removeTask(id: string) {
